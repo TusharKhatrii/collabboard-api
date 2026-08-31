@@ -75,4 +75,21 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     this.logger.log(`Client ${client.id} left room: ${roomId}`);
   }
+
+  @SubscribeMessage('draw-update')
+handleDrawUpdate(
+  @MessageBody() payload: { roomId: string; elements: any },
+  @ConnectedSocket() client: Socket,
+) {
+  // broadcast to everyone else in the room (not back to sender)
+  client.to(payload.roomId).emit('draw-update', payload.elements);
+}
+
+@SubscribeMessage('cursor-move')
+handleCursorMove(
+  @MessageBody() payload: { roomId: string; socketId: string; username: string; x: number; y: number },
+  @ConnectedSocket() client: Socket,
+) {
+  client.to(payload.roomId).emit('cursor-move', payload);
+}
 }
