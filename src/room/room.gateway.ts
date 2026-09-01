@@ -18,7 +18,7 @@ interface JoinRoomPayload {
 
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: process.env.CORS_ORIGIN || '*',
   },
 })
 export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {

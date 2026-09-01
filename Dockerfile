@@ -6,7 +6,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 FROM base AS dependencies
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm-api,target=/pnpm/store pnpm install --frozen-lockfile
 
 # ---- Build ----
 FROM base AS build
@@ -23,7 +23,7 @@ ENV NODE_ENV=production
 RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile --prod
+RUN --mount=type=cache,id=pnpm-api,target=/pnpm/store pnpm install --frozen-lockfile --prod
 
 COPY --from=build /app/dist ./dist
 
