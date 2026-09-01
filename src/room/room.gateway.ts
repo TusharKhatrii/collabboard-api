@@ -18,7 +18,7 @@ interface JoinRoomPayload {
 
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: process.env.CORS_ORIGIN || '*',
   },
 })
 export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -39,6 +39,7 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const result = this.roomService.removeParticipant(client.id);
     if (result) {
       this.server.to(result.roomId).emit('presence-update', result.participants);
+      this.server.to(result.roomId).emit('participant-left', { socketId: client.id });
       this.logger.log(`Removed from room: ${result.roomId}`);
     }
   }
@@ -71,6 +72,7 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (result) {
       this.server.to(result.roomId).emit('presence-update', result.participants);
+      this.server.to(result.roomId).emit('participant-left', { socketId: client.id });
     }
 
     this.logger.log(`Client ${client.id} left room: ${roomId}`);
@@ -82,7 +84,7 @@ handleDrawUpdate(
   @ConnectedSocket() client: Socket,
 ) {
   // broadcast to everyone else in the room (not back to sender)
-  client.to(payload.roomId).emit('draw-update', payload.elements);
+  client.to(payload.roomId).emit('draw-update', payload);
 }
 
 @SubscribeMessage('cursor-move')
