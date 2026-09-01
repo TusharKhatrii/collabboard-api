@@ -22,4 +22,16 @@ export class RoomDbService {
     }
     return room;
   }
+
+  async saveScene(accessCode: string, elements: unknown[]) {
+    const room = await this.roomModel.findOneAndUpdate(
+      { accessCode },
+      { $set: { elements } },
+      { new: true },
+    );
+    if (!room) {
+      throw new NotFoundException(`Room with code ${accessCode} not found`);
+    }
+    return room;
+  }
 }

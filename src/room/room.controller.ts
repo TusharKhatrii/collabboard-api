@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Param, Body } from '@nestjs/common';
+import { Controller, Post, Get, Put, Param, Body } from '@nestjs/common';
 import { RoomDbService } from './room-db.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 
@@ -14,5 +14,13 @@ export class RoomController {
   @Get(':accessCode')
   async getRoom(@Param('accessCode') accessCode: string) {
     return this.roomDbService.findByAccessCode(accessCode);
+  }
+
+  @Put(':accessCode/scene')
+  async updateScene(
+    @Param('accessCode') accessCode: string,
+    @Body() body: { elements: unknown[] },
+  ) {
+    return this.roomDbService.saveScene(accessCode, body.elements ?? []);
   }
 }
