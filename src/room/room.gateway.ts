@@ -10,6 +10,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { RoomService } from './room.service';
+import { RoomDbService } from './room-db.service';
 
 interface JoinRoomPayload {
   roomId: string;
@@ -27,7 +28,10 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private readonly logger = new Logger(RoomGateway.name);
 
-  constructor(private readonly roomService: RoomService) {}
+  constructor(
+    private readonly roomService: RoomService,
+    private readonly roomDbService: RoomDbService,
+  ) {}
 
   handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
@@ -41,6 +45,7 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(result.roomId).emit('presence-update', result.participants);
       this.server.to(result.roomId).emit('participant-left', { socketId: client.id });
       this.logger.log(`Removed from room: ${result.roomId}`);
+      this.persistSceneIfEmpty(result.roomId, result.scene);
     }
   }
 
@@ -73,6 +78,7 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (result) {
       this.server.to(result.roomId).emit('presence-update', result.participants);
       this.server.to(result.roomId).emit('participant-left', { socketId: client.id });
+      this.persistSceneIfEmpty(result.roomId, result.scene);
     }
 
     this.logger.log(`Client ${client.id} left room: ${roomId}`);
@@ -83,8 +89,22 @@ handleDrawUpdate(
   @MessageBody() payload: { roomId: string; elements: any },
   @ConnectedSocket() client: Socket,
 ) {
+  // Keep the latest full scene in memory so it can be persisted to the DB if the
+  // room becomes empty. The payload always carries the complete elements array.
+  if (Array.isArray(payload?.elements)) {
+    this.roomService.updateScene(payload.roomId, payload.elements);
+  }
+
   // broadcast to everyone else in the room (not back to sender)
   client.to(payload.roomId).emit('draw-update', payload);
+}
+
+private persistSceneIfEmpty(roomId: string, scene: unknown[] | null) {
+  if (!scene) return;
+  // Best-effort: persist real-time edits so they survive the room going empty.
+  this.roomDbService.saveScene(roomId, scene).catch((err) => {
+    this.logger.error(`Failed to persist scene on room-empty (${roomId}): ${err?.message ?? err}`);
+  });
 }
 
 @SubscribeMessage('cursor-move')
