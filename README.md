@@ -1,8 +1,8 @@
 ﻿# CollabBoard API
 
-Real-time backend for [CollabBoard](https://github.com/YOUR-USERNAME/collabboard-web) — a collaborative whiteboard built with Excalidraw. Handles WebSocket-based presence, live cursor tracking, drawing synchronization, and room persistence.
+Real-time backend for [CollabBoard](https://github.com/TusharKhatrii/collabboard-web) — a collaborative whiteboard built with Excalidraw. Handles WebSocket-based presence, live cursor tracking, drawing synchronization, and room persistence.
 
-**Live API:** `LIVE_LINK_PLACEHOLDER`
+[Live App](https://collabboard-web-seven.vercel.app/)
 
 ## Tech Stack
 
@@ -102,4 +102,4 @@ CORS_ORIGIN=<deployed frontend URL>
 
 ## Related
 
-- Frontend repo: [collabboard-web](https://github.com/YOUR-USERNAME/collabboard-web)
+- Frontend repo: [collabboard-web](https://github.com/TusharKhatrii/collabboard-web)
